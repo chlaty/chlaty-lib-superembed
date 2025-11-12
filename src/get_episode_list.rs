@@ -5,12 +5,12 @@ use std::ptr;
 
 use serde::{Deserialize, Serialize};
 use serde_json::{from_str, to_string, json};
-use reqwest::header::{HeaderMap, USER_AGENT, HeaderValue, REFERER};
+use reqwest::header::{HeaderMap, USER_AGENT, HeaderValue};
 use visdom::Vis;
 use urlencoding::{encode, decode};
 use html_escape::decode_html_entities;
 
-use crate::{ SOURCE_HOST, SOURCE_REFERER, SOURCE_ORIGIN };
+use crate::{ SOURCE_HOST };
 
 
 
@@ -108,7 +108,7 @@ pub extern "C" fn get_episode_list(
                     
                     let tr_ele = vis.find("tr");
                     
-                    let mut season_index = 0;
+                    let mut season_id = 1;
                     for tr in tr_ele {
                         let tr_ele = Vis::dom(&tr);
 
@@ -121,7 +121,7 @@ pub extern "C" fn get_episode_list(
                         if ep_ele.length() > 0 {
                             let mut new_ep_data: Vec<EpisodeData> = Vec::new();
 
-                            let mut episode_index = 0;
+                            let mut episode_id = 1;
                             for ep in ep_ele.into_iter() {
                                 let ep_ele = Vis::dom(&ep);
                                 
@@ -130,19 +130,19 @@ pub extern "C" fn get_episode_list(
                                 let id = encode(&to_string(&json!({
                                         "type": id_type,
                                         "imdb_id": imdb_id,
-                                        "s": season_index,
-                                        "e": episode_index,
+                                        "s": season_id,
+                                        "e": episode_id,
                                     })).unwrap()).to_string();
                                 new_ep_data.push(EpisodeData {
-                                    index: episode_index,
+                                    index: episode_id,
                                     id: id,
                                     title: title,
                                 });
 
-                                episode_index += 1;
+                                episode_id += 1;
                             }
 
-                            season_index += 1;
+                            season_id += 1;
                             return_result.data.push(vec![new_ep_data]);
                         }
                         

@@ -43,35 +43,37 @@ mod tests {
     // }
 
 
-    use crate::get_episode_server::get_episode_server;
-
-    #[test]
-    fn test_4() {
-        unsafe {
-            let args = CString::new(to_string(&json!({
-                "episode_id": "%7B%22e%22%3A0%2C%22imdb_id%22%3A%22tt9140554%22%2C%22s%22%3A0%2C%22type%22%3A%22tv%22%7D",
-            })).unwrap()).expect("CString::new failed");
-            let get_episode_server_ptr = get_episode_server(args.as_ptr());
-            let result = CStr::from_ptr(get_episode_server_ptr).to_str().unwrap().to_owned();
-            println!("{}", &result);
-            free_ptr(get_episode_server_ptr as *mut c_char);
-        }
-    }
-
-    // use crate::get_server::get_server;
+    
 
     // #[test]
-    // fn test_get_server() {
+    // fn test_4() {
+    //     use crate::get_episode_server::get_episode_server;
     //     unsafe {
     //         let args = CString::new(to_string(&json!({
-    //             "index": 23,
-    //             "id": String::from("https%3A%2F%2Fhydrahd.ru%2Fajax%2F1_s1.php%3Ftmdbid%3D84958%26season%3D1%26episode%3D1"),
+    //             "episode_id": "%7B%22e%22%3A1%2C%22imdb_id%22%3A%22tt9140554%22%2C%22s%22%3A1%2C%22type%22%3A%22tv%22%7D",
     //         })).unwrap()).expect("CString::new failed");
-            
-    //         let get_server_ptr = get_server(args.as_ptr());
-    //         let result = CStr::from_ptr(get_server_ptr).to_str().unwrap().to_owned();
+    //         let get_episode_server_ptr = get_episode_server(args.as_ptr());
+    //         let result = CStr::from_ptr(get_episode_server_ptr).to_str().unwrap().to_owned();
     //         println!("{}", &result);
-    //         free_ptr(get_server_ptr as *mut c_char);
+    //         free_ptr(get_episode_server_ptr as *mut c_char);
     //     }
     // }
+
+    
+
+    #[test]
+    fn test_get_server() {
+        use crate::get_server::get_server;
+        unsafe {
+            let args = CString::new(to_string(&json!({
+                "index": 89,
+                "id": String::from("%7B%22server_id%22%3A89%2C%22token%22%3A%22TEdhWFREeUcxTVlhNHI3TFRGb0tTaXFUVStmQnNRakRNcXVrOWtRb2ljT0lnQ1JNeFdCamcweTN3VGkrQ21ROGNMSVcvT09YSUo1V0pXbzZjNlhLN2F4MDNZaWhzN2hDUDhRV1dtMFRoUnl4d0YyNFJWQVRlOTAvLzBEay9ZODZwOFdFQnJYUTYvUWRGVjJNQ0ZqbndURzY5TzJNNUtjb0tzRT0%3D%22%2C%22video_id%22%3A%22SW1XWVREZUd5TjBjK2FiTVVVY0w%3D%22%7D"),
+            })).unwrap()).expect("CString::new failed");
+            
+            let get_server_ptr = get_server(args.as_ptr());
+            let result = CStr::from_ptr(get_server_ptr).to_str().unwrap().to_owned();
+            println!("{}", &result);
+            free_ptr(get_server_ptr as *mut c_char);
+        }
+    }
 }

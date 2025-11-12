@@ -2,13 +2,11 @@ use std::ffi::{CString, CStr};
 use std::os::raw::{c_char};
 use std::panic;
 use std::ptr;
-use std::str::FromStr;
 
 
 use serde::{Deserialize, Serialize};
 use serde_json::{ from_str, Value};
-use reqwest::header::{HeaderMap, HOST, ORIGIN, REFERER, HeaderValue, HeaderName, USER_AGENT, ACCEPT};
-use visdom::Vis;
+use reqwest::header::{HeaderMap, HOST, ORIGIN, REFERER, HeaderValue, USER_AGENT};
 use urlencoding::{encode};
 use html_escape::decode_html_entities;
 
@@ -135,7 +133,7 @@ pub extern "C" fn search(
             return result.into_raw();
         },
         Err(e) => {
-            println!("[Search] Error: {:?}", e);
+            eprintln!("[Search] Error: {:?}", e);
             return ptr::null();
         },
     }

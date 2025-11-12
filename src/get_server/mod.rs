@@ -6,13 +6,12 @@ use std::ptr;
 
 use serde::{Deserialize, Serialize};
 use serde_json::{from_str};
+use urlencoding::{decode};
 
 
 
 
-
-mod server_2;
-mod server_23;
+mod server_type_1;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Timeline {
@@ -36,7 +35,7 @@ pub struct TrackInfo {
 
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
-pub struct DataResult { 
+pub struct Data { 
     pub intro: Option<Timeline>,
     pub outro: Option<Timeline>,
     pub sources: Vec<SourceInfo>,
@@ -45,7 +44,7 @@ pub struct DataResult {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct ReturnConfig {
+pub struct Config {
     pub host: String,
     pub referer: String,
     pub origin: String,
@@ -54,25 +53,42 @@ pub struct ReturnConfig {
 }
 
 #[derive(Serialize, Deserialize)]
-struct ReturnResult {
+struct ServerInfo {
     status: bool,
     message: String,
-    data: Option<DataResult>,
-    config: Option<ReturnConfig>,
+    data: Option<Data>,
+    config: Option<Config>,
 }
 
 #[derive(Serialize, Deserialize)]
 struct Arguments {
-    index: usize,
-    id: String
+    id: String,
+    index: usize
 }
+
+#[derive(Debug, Serialize, Deserialize)]
+struct FormatServerArguments {
+    video_id: String,
+    server_id: usize,
+    token: String
+}
+
+
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct GetServerResult{
+    pub data: Data,
+    pub config: Config
+}
+
+const SERVER_TYPES_1: [usize; 3]  = [89, 90, 88];
 
 #[unsafe(no_mangle)]
 pub extern "C" fn get_server(
     arguments_ptr: *const c_char,
 ) -> *const c_char {
     let result = panic::catch_unwind(|| {
-        let mut return_result = ReturnResult {
+        let mut return_result = ServerInfo {
             status: false,
             message: String::from(""),
             data: None,
@@ -80,49 +96,48 @@ pub extern "C" fn get_server(
         };
 
         // Check argument before processing
-        let mut valid_arguments: bool = true;
         if arguments_ptr.is_null() {
-            return_result.message = String::from("Expected 1 argument.");
-            valid_arguments = false;
+            panic!("Expected 1 argument.");
         }
+
+        let args: Arguments = unsafe { 
+            from_str(&CStr::from_ptr(arguments_ptr as *mut c_char).to_string_lossy().into_owned()).unwrap()
+        };
         
-        let mut args: Arguments = Arguments { index:0, id: String::from("") };
-        if valid_arguments {
-            unsafe { 
-                match from_str::<Arguments>(&CStr::from_ptr(arguments_ptr as *mut c_char).to_string_lossy().into_owned()) {
-                    Ok(result) => {
-                        args.id = result.id;
-                        args.index = result.index
-                    },
-                    Err(e) => {
-                        return_result.message = String::from(e.to_string());
-                        valid_arguments = false;
-                    }
-                }
-            };
-        }
         // ================================================
 
-        if valid_arguments {
-            let id = args.id;
-            let index = args.index;
+        
+        let raw_id = args.id;
+        let index = args.index;
+        
 
-            let get_server_fn: Option<fn(&str) -> Result<GetServerResult, Box<dyn std::error::Error>>> = match index {
-                2 => Some(server_2::new),
-                23 => Some(server_23::new),
-                _ => None
+        let format_args: FormatServerArguments = from_str(&decode(&raw_id).unwrap()).unwrap();
+        
+
+        let video_id = format_args.video_id;
+        let server_id = format_args.server_id;
+        let token = format_args.token;
+
+
+        
+
+        let get_server_fn: Option<fn(&str, &str, &str) -> GetServerResult> = 
+            if SERVER_TYPES_1.contains(&index) {
+                Some(server_type_1::new)
+            } else {
+                None
             };
 
-            if let Some(get_server) = get_server_fn {
-                let result = get_server(&id).unwrap();
-                
-                return_result.data = Some(result.data);
-                return_result.config = Some(result.config);
-                return_result.status = true;
-            }else{
-                return_result.message = String::from("[get_server] Unknown server index.");
-            }
+        if let Some(get_server) = get_server_fn {
+            let result = get_server(&video_id, &server_id.to_string(), &token);
+            
+            return_result.data = Some(result.data);
+            return_result.config = Some(result.config);
+            return_result.status = true;
+        }else{
+            return_result.message = String::from("[get_server] Unknown server index.");
         }
+        
         
         return serde_json::to_string(&return_result).unwrap();
     });
@@ -137,8 +152,3 @@ pub extern "C" fn get_server(
 }
 
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct GetServerResult{
-    pub data: DataResult,
-    pub config: ReturnConfig
-}

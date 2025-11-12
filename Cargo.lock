@@ -103,6 +103,7 @@ name = "chlaty-lib-superembed"
 version = "0.1.0"
 dependencies = [
  "html-escape",
+ "rand",
  "regex",
  "reqwest",
  "serde",
