@@ -88,8 +88,8 @@ pub extern "C" fn get_episode_server(
         if episode_info.s.is_some() && episode_info.e.is_some() {
             extract_token_url = format!("https://multiembed.mov/directstream.php?video_id={}&s={}&e={}", 
                 episode_info.imdb_id,
-                episode_info.s.unwrap(),
-                episode_info.e.unwrap()
+                episode_info.s.unwrap()+1,
+                episode_info.e.unwrap()+1
             );
         }else{
             extract_token_url = format!("https://multiembed.mov/directstream.php?video_id={}", episode_info.imdb_id);

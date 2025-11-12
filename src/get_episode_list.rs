@@ -108,7 +108,7 @@ pub extern "C" fn get_episode_list(
                     
                     let tr_ele = vis.find("tr");
                     
-                    let mut season_id = 1;
+                    let mut season_index = 0;
                     for tr in tr_ele {
                         let tr_ele = Vis::dom(&tr);
 
@@ -121,7 +121,7 @@ pub extern "C" fn get_episode_list(
                         if ep_ele.length() > 0 {
                             let mut new_ep_data: Vec<EpisodeData> = Vec::new();
 
-                            let mut episode_id = 1;
+                            let mut episode_index = 0;
                             for ep in ep_ele.into_iter() {
                                 let ep_ele = Vis::dom(&ep);
                                 
@@ -130,19 +130,19 @@ pub extern "C" fn get_episode_list(
                                 let id = encode(&to_string(&json!({
                                         "type": id_type,
                                         "imdb_id": imdb_id,
-                                        "s": season_id,
-                                        "e": episode_id,
+                                        "s": season_index,
+                                        "e": episode_index,
                                     })).unwrap()).to_string();
                                 new_ep_data.push(EpisodeData {
-                                    index: episode_id,
+                                    index: episode_index,
                                     id: id,
                                     title: title,
                                 });
 
-                                episode_id += 1;
+                                episode_index += 1;
                             }
 
-                            season_id += 1;
+                            season_index += 1;
                             return_result.data.push(vec![new_ep_data]);
                         }
                         
