@@ -74,10 +74,11 @@ pub extern "C" fn search(
 
         let mut new_data: Vec<Data> = Vec::new();
 
+
         for search_type in ["movies", "tv"] {
             let url = format!("https://{}/ajax/full/search.php?s={}&type={}&sort=0", 
                 SOURCE_HOST, 
-                if search_string.trim().is_empty() { "+" } else { &encode(&search_string) },
+                if search_string.trim().is_empty() { "+".to_string() } else { encode(&search_string).to_string() },
                 search_type,
             );
 
