@@ -6,9 +6,6 @@ use std::ptr;
 
 use serde::{Deserialize, Serialize};
 use serde_json::{from_str};
-use urlencoding::{decode};
-
-
 
 
 mod server_type_1;
@@ -67,15 +64,6 @@ struct Arguments {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-struct FormatServerArguments {
-    video_id: String,
-    server_id: usize,
-    token: String
-}
-
-
-
-#[derive(Debug, Serialize, Deserialize)]
 pub struct GetServerResult{
     pub data: Data,
     pub config: Config
@@ -107,21 +95,10 @@ pub extern "C" fn get_server(
         // ================================================
 
         
-        let raw_id = args.id;
+        let id = args.id;
         let index = args.index;
         
-
-        let format_args: FormatServerArguments = from_str(&decode(&raw_id).unwrap()).unwrap();
-        
-
-        let video_id = format_args.video_id;
-        let server_id = format_args.server_id;
-        let token = format_args.token;
-
-
-        
-
-        let get_server_fn: Option<fn(&str, &str, &str) -> GetServerResult> = 
+        let get_server_fn: Option<fn(&str) -> GetServerResult> = 
             if SERVER_TYPES_1.contains(&index) {
                 Some(server_type_1::new)
             } else {
@@ -129,7 +106,7 @@ pub extern "C" fn get_server(
             };
 
         if let Some(get_server) = get_server_fn {
-            let result = get_server(&video_id, &server_id.to_string(), &token);
+            let result = get_server(&id);
             
             return_result.data = Some(result.data);
             return_result.config = Some(result.config);

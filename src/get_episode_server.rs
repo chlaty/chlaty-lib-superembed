@@ -16,6 +16,8 @@ use html_escape::decode_html_entities;
 use rand::rng;
 
 
+use crate::DUMMY_VERIFY_TOKENS;
+
 #[derive(Debug, Serialize, Deserialize)]
 struct EpisodeInfo{
     imdb_id: String,
@@ -28,7 +30,8 @@ struct EpisodeInfo{
 struct EpisodeServerData{
     index: usize,
     id: String,
-    title: String
+    title: String,
+    verify_url: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -44,14 +47,6 @@ struct Arguments {
 }
 
 const SUPPORT_SERVER_INDEX: [usize; 3]  = [89, 90, 88];
-
-const DUMMY_VERIFY_TOKENS: [&str; 5] = [
-    "ZEhKMVpTLVF0LVBTLVF0LVB6QS1RTFMtUXpPLTBJdEwtMC1WM05qSTROamMtUU9Ea3otUC0wYy01",
-    "ZEhKMVpTLVF0LVBTLVF0TkRrMkxTLVF6Ty0wLVB0TC0wLVYzTmpJNE5qWTUtUERBMy1QalUtNQ==",
-    "ZEhKMVpTLVF0LVBTLVF0Ti0wSXdMUy1Rek56LVZ0TC0wLVYzTmpJNE5qSTMtUHprMS1QRGstNQ==",
-    "ZEhKMVpTLVF0LVBTLVF0TnpVeUxTLVF6Ty0wLVZ0TC0wLVYzTmpJNE56LVAtUS1QREkzTnpJLTU",
-    "ZEhKMVpTLVF0LVBTLVF0TnpZeExTLVF6T0RndEwtMC1WM05qSTROei1QMU56LVAyLVAtMEktNQ==",
-];
 
 #[unsafe(no_mangle)]
 pub extern "C" fn get_episode_server(
@@ -99,7 +94,7 @@ pub extern "C" fn get_episode_server(
         let token = extract_token(&extract_token_url);
 
 
-        let server_data = extract_server_data(&token);
+        let server_data = extract_server_data(&episode_info, &token);
         
 
         return_result.status = true;
@@ -121,7 +116,7 @@ pub extern "C" fn get_episode_server(
 
 
 
-fn extract_token(url: &str) -> String {
+pub fn extract_token(url: &str) -> String {
 
     let client = reqwest::blocking::Client::new();
 
@@ -138,11 +133,11 @@ fn extract_token(url: &str) -> String {
     return token;
 }
 
-fn extract_server_data(token: &str) -> Vec<EpisodeServerData> {
+fn extract_server_data(episode_info: &EpisodeInfo, token: &str) -> Vec<EpisodeServerData> {
     
     let client = reqwest::blocking::Client::new();
 
-    /* Generate Cusom Header */
+    /* Generate Custom Header */
     let mut headers = HeaderMap::new();
 
     headers.insert(USER_AGENT, HeaderValue::from_static(
@@ -187,6 +182,9 @@ fn extract_server_data(token: &str) -> Vec<EpisodeServerData> {
     }
     
     /* --- */
+
+
+
     
     let mut form:HashMap<&str, &str> = HashMap::new();
     
@@ -221,21 +219,31 @@ fn extract_server_data(token: &str) -> Vec<EpisodeServerData> {
 
         let raw_title = source_ele.find(".server-name").text();
         let title = decode_html_entities(raw_title.trim()).to_string();
-
         let video_id = source_ele.attr("data-id").unwrap().to_string();
 
         let raw_id = json!({
-            "video_id": &video_id,
-            "server_id": &server_id,
-            "token": &second_token
+            "imdb_id": episode_info.imdb_id,
+            "s": episode_info.s,
+            "e": episode_info.e,
+            "server_id": raw_server_id
         });
 
         
 
+        let id = encode(&to_string(&raw_id).unwrap()).to_string();
+
+        let verify_url = format!("https://streamingnow.mov/playvideo.php?video_id={}&server_id={}&token={}=&init=1",
+            video_id,
+            raw_server_id,
+            second_token
+        );
+
+
         new_server_data.push(EpisodeServerData {
-            index: server_id,
-            id: encode(&to_string(&raw_id).unwrap()).to_string(),
+            index: server_id.clone(),
+            id: id,
             title,
+            verify_url: Some(verify_url),
         });
     }
 
