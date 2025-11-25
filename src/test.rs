@@ -6,26 +6,26 @@ mod tests {
     use crate::free_ptr::free_ptr;
 
     
-    // #[test]
-    // fn test_2() {
-    //     use crate::search::search;
-    //     unsafe {
-    //         let args = CString::new(to_string(&json!({
-    //             "search": String::from("loki")
-    //         })).unwrap()).expect("CString::new failed");
+    #[test]
+    fn test_2() {
+        use crate::search::search;
+        unsafe {
+            let args = CString::new(to_string(&json!({
+                "search": String::from("zootopia 2")
+            })).unwrap()).expect("CString::new failed");
             
-    //         let search_ptr = search(args.as_ptr());
-    //         if search_ptr.is_null() {
-    //             println!("[Search] Error null ptr.");
-    //             return;
-    //         }
-    //         let result = CStr::from_ptr(search_ptr).to_str().unwrap().to_owned();
+            let search_ptr = search(args.as_ptr());
+            if search_ptr.is_null() {
+                println!("[Search] Error null ptr.");
+                return;
+            }
+            let result = CStr::from_ptr(search_ptr).to_str().unwrap().to_owned();
 
-    //         println!("{:?}", result);
+            println!("{:?}", result);
 
-    //         free_ptr(search_ptr as *mut c_char);
-    //     }
-    // }
+            free_ptr(search_ptr as *mut c_char);
+        }
+    }
 
     // use crate::get_episode_list::get_episode_list;
     // #[test]
@@ -61,19 +61,19 @@ mod tests {
 
     
 
-    #[test]
-    fn test_get_server() {
-        use crate::get_server::get_server;
-        unsafe {
-            let args = CString::new(to_string(&json!({
-                "index": 89,
-                "id": String::from("%7B%22e%22%3A1%2C%22imdb_id%22%3A%22tt9140554%22%2C%22s%22%3A1%2C%22server_id%22%3A%2289%22%7D"),
-            })).unwrap()).expect("CString::new failed");
+    // #[test]
+    // fn test_get_server() {
+    //     use crate::get_server::get_server;
+    //     unsafe {
+    //         let args = CString::new(to_string(&json!({
+    //             "index": 89,
+    //             "id": String::from("%7B%22e%22%3A1%2C%22imdb_id%22%3A%22tt9140554%22%2C%22s%22%3A1%2C%22server_id%22%3A%2289%22%7D"),
+    //         })).unwrap()).expect("CString::new failed");
             
-            let get_server_ptr = get_server(args.as_ptr());
-            let result = CStr::from_ptr(get_server_ptr).to_str().unwrap().to_owned();
-            println!("{}", &result);
-            free_ptr(get_server_ptr as *mut c_char);
-        }
-    }
+    //         let get_server_ptr = get_server(args.as_ptr());
+    //         let result = CStr::from_ptr(get_server_ptr).to_str().unwrap().to_owned();
+    //         println!("{}", &result);
+    //         free_ptr(get_server_ptr as *mut c_char);
+    //     }
+    // }
 }
