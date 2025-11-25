@@ -94,8 +94,14 @@ pub extern "C" fn search(
 
             /* Do the work here */
             let data:Value = res.json().unwrap();
+            let data_to_obj = match data.as_object() {
+                Some(obj) => obj,
+                None => {
+                    continue;
+                }
+            };
             
-            for (_, value) in data.as_object().unwrap().into_iter() {
+            for (_, value) in data_to_obj.into_iter() {
                 
                 let title: String = value.get("titles")
                     .and_then(|v| v.get("m"))
