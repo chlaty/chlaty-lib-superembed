@@ -164,24 +164,32 @@ fn extract_hls_and_tracks(html: &str) -> HlsAndTracks {
     let hls_re = Regex::new(r#"file:"(https?://[^"]+\.m3u8)""#).unwrap();
     let hls = hls_re.captures(html).unwrap().get(1).unwrap().as_str().to_string();
 
-    // Regex to extract subtitle block
-    let subtitle_re = Regex::new(r#"subtitle:"([^"]+)""#).unwrap();
-    let subtitle_block = subtitle_re.captures(html).unwrap().get(1).unwrap().as_str();
+    // Regex to extract subtitle block and Parse subtitle entries
 
-    // Parse subtitle entries
-    let tracks = subtitle_block
-        .split(',')
-        .map(|entry| {
-            let parts: Vec<&str> = entry.splitn(2, ']').collect();
-            let label = parts[0].strip_prefix('[').map(|s| s.to_string());
-            let file = parts[1].to_string();
-            TrackInfo {
-                file,
-                label,
-                kind: "captions".to_string(),
-            }
-        })
-        .collect();
+    let subtitle_re = Regex::new(r#"subtitle:"([^"]+)""#).unwrap();
+
+    let tracks: Vec<TrackInfo> = subtitle_re
+        .captures(html)
+        .map_or(Vec::new(), |caps| {
+            let subtitle_block = caps.get(1).unwrap().as_str();
+            subtitle_block
+                .split(',')
+                .filter_map(|entry| {
+                    let parts: Vec<&str> = entry.splitn(2, ']').collect();
+                    if parts.len() == 2 {
+                        let label = parts[0].strip_prefix('[').map(|s| s.to_string());
+                        let file = parts[1].to_string();
+                        Some(TrackInfo {
+                            file,
+                            label,
+                            kind: "captions".to_string(),
+                        })
+                    } else {
+                        None
+                    }
+                })
+                .collect()
+        });
 
     HlsAndTracks { hls, tracks }
 }
