@@ -109,7 +109,7 @@ pub fn new(id: &str) -> GetServerResult {
 
     let iframe_ele = vis.find(".source-frame");
     let next_url = iframe_ele.attr("src").unwrap().to_string();
-
+    
     /* --- */
 
     /* Extract HLS and Tracks */
@@ -159,9 +159,10 @@ pub fn new(id: &str) -> GetServerResult {
 }
 
 
+
 fn extract_hls_and_tracks(html: &str) -> HlsAndTracks {
     // Regex to extract the HLS URL
-    let hls_re = Regex::new(r#"file:"(https?://[^"]+\.m3u8)""#).unwrap();
+    let hls_re = Regex::new(r#"file:"(https?://[^"]+)""#).unwrap();
     let hls = hls_re.captures(html).unwrap().get(1).unwrap().as_str().to_string();
 
     // Regex to extract subtitle block and Parse subtitle entries

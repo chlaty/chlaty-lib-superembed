@@ -9,7 +9,7 @@ fi
 # Define ENV
 NAME="chlaty-lib-superembed"
 REPO="chlaty/chlaty-lib-superembed"
-VERSION="0.1.4"
+VERSION="0.1.5"
 OUTPUT_DIR="artifacts"
 
 
